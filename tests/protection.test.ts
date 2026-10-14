@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fingerprintMessage, isHoneypot, shouldIgnore } from "../worker/protection";
+import { fingerprintMessage, isHoneypot, shouldIgnore } from "../core/protection";
 import { validateSettings } from "../shared/settings";
 import { DEFAULT_SETTINGS, type DiscordMessage } from "../shared/types";
 

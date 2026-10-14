@@ -9,5 +9,5 @@ export default defineConfig({
       DISCORD_CLIENT_SECRET: "test-client-secret", DISCORD_GUILD_ID: "100000000000000002",
     } },
   })],
-  test: { include: ["tests/**/*.test.ts"] },
+  test: { include: ["tests/*.test.ts"] },
 });

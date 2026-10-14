@@ -80,6 +80,7 @@ export interface Dashboard {
 }
 
 export interface AppSession {
+  hosting?: "cloudflare" | "docker";
   configured: boolean;
   authenticated: boolean;
   missing: string[];

@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+node_modules
+dist
+data
+.wrangler
+test-results
+playwright-report
+coverage
+*.tsbuildinfo
+worker-configuration.d.ts

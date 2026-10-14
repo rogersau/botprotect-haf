@@ -1,4 +1,4 @@
-import type { Env } from "./env";
+import type { DiscordConfig } from "./contracts";
 import type { Channel, GuildResources, Role } from "../shared/types";
 
 const API = "https://discord.com/api/v10";
@@ -36,7 +36,7 @@ export async function canManageGuild(token: string, guildId: string): Promise<bo
   return false;
 }
 
-export async function resources(env: Env): Promise<GuildResources> {
+export async function resources(env: DiscordConfig): Promise<GuildResources> {
   const token = env.DISCORD_BOT_TOKEN!;
   const guildId = env.DISCORD_GUILD_ID!;
   const [guild, channels, roles] = await Promise.all([
@@ -49,7 +49,7 @@ export async function resources(env: Env): Promise<GuildResources> {
     roles: roles.map(({ id, name, color }) => ({ id, name, color })) };
 }
 
-export function inviteUrl(env: Env): string {
+export function inviteUrl(env: DiscordConfig): string {
   const params = new URLSearchParams({ client_id: env.DISCORD_CLIENT_ID!, scope: "bot", permissions: "84992", guild_id: env.DISCORD_GUILD_ID!, disable_guild_select: "true" });
   return `https://discord.com/oauth2/authorize?${params}`;
 }

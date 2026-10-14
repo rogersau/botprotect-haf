@@ -21,3 +21,23 @@ jobs:
         with:
           name: browser-results
           path: test-results/
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: docker compose config --quiet
+      - run: PUBLIC_URL=https://botprotect.example docker compose -f compose.yml -f compose.https.yml config --quiet
+      - run: PUBLIC_URL=https://botprotect.tail123.ts.net docker compose -f compose.yml -f compose.tailscale.yml config --quiet
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:docker -- --browser
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: docker-browser-results
+          path: test-results/
