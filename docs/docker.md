@@ -1,5 +1,9 @@
 # Docker, HTTPS, and Tailscale
 
+For an introduction, start with the [README](../README.md). The
+[technical guide](technical.md) covers Discord credentials, permissions, and
+protection behavior shared by both hosting options.
+
 BotProtect can run on an always-on VPS, NAS, or home server using Docker Compose.
 One container protects one Discord guild. The container serves the dashboard,
 maintains the Discord Gateway, and stores settings, sessions, flags, and queued
