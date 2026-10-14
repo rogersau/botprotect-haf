@@ -1,0 +1,67 @@
+{
+  "name": "botprotect-haf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Single-guild Discord bot protection, brought to you by HAFBOT.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogersau/botprotect-haf.git"
+  },
+  "homepage": "https://github.com/rogersau/botprotect-haf#readme",
+  "bugs": { "url": "https://github.com/rogersau/botprotect-haf/issues" },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "deploy": "npm run build && wrangler deploy",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "check": "npm run typecheck && npm test && npm run build",
+    "cf-typegen": "wrangler types"
+  },
+  "cloudflare": {
+    "label": "BotProtect by HAFBOT",
+    "bindings": {
+      "DISCORD_BOT_TOKEN": {
+        "description": "Your bot token from the Discord Developer Portal → Bot. Enable Message Content Intent."
+      },
+      "DISCORD_CLIENT_ID": {
+        "description": "Application ID from Discord Developer Portal → General Information."
+      },
+      "DISCORD_CLIENT_SECRET": {
+        "description": "Client secret from Discord Developer Portal → OAuth2."
+      },
+      "DISCORD_GUILD_ID": {
+        "description": "The one Discord server this deployment protects. Enable Developer Mode, right-click the server and Copy Server ID."
+      },
+      "GUILD": {
+        "description": "Stores this guild's settings, review queue, sessions, and Discord gateway connection."
+      }
+    }
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.3.0",
+    "lucide-react": "^1.57.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.64.0",
+    "@cloudflare/vitest-plugin": "^1.4.2",
+    "@cloudflare/workers-types": "^5.20261014.1",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.151.0"
+  }
+}

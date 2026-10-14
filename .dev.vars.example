@@ -1,0 +1,5 @@
+# Cloudflare's deploy button prompts for these values. Never commit real credentials.
+DISCORD_BOT_TOKEN=""
+DISCORD_CLIENT_ID=""
+DISCORD_CLIENT_SECRET=""
+DISCORD_GUILD_ID=""
