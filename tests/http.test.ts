@@ -3,7 +3,7 @@ import worker from "../worker/index";
 import { env } from "cloudflare:workers";
 import { reset } from "cloudflare:test";
 import { guildStub, type Env } from "../worker/env";
-import { hashToken } from "../worker/auth";
+import { hashToken } from "../core/auth";
 
 const bindings = env as Env;
 const origin = "https://botprotect.example";
@@ -12,7 +12,7 @@ afterEach(async () => { vi.restoreAllMocks(); await reset(); });
 describe("HTTP authentication boundary", () => {
   it("reports missing configuration without exposing secrets or data", async () => {
     const response = await worker.fetch(new Request(`${origin}/api/session`), { ...bindings, DISCORD_BOT_TOKEN: undefined });
-    expect(await response.json()).toEqual({ configured: false, authenticated: false, missing: ["DISCORD_BOT_TOKEN"] });
+    expect(await response.json()).toEqual({ configured: false, authenticated: false, missing: ["DISCORD_BOT_TOKEN"], hosting: "cloudflare" });
     expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
   it("rejects unauthenticated reads and cross-origin writes", async () => {

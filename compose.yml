@@ -1,0 +1,27 @@
+services:
+  botprotect:
+    build: .
+    image: botprotect-haf:local
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3000}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:-}
+    ports:
+      - "127.0.0.1:${HTTP_PORT:-3000}:3000"
+    volumes:
+      - botprotect-data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  botprotect-data:

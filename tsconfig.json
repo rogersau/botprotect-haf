@@ -13,5 +13,5 @@
     "allowImportingTsExtensions": true,
     "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types", "vite/client", "node"]
   },
-  "include": ["src", "shared", "worker", "tests", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"]
+  "include": ["src", "shared", "core", "worker", "server", "tests", "e2e", "vite.config.ts", "vitest.config.ts", "vitest.node.config.ts", "playwright.config.ts"]
 }

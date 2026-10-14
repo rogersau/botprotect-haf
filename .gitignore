@@ -6,6 +6,8 @@ dist/
 !.dev.vars.example
 .env
 .env.*
+!.env.example
+data/
 *.tsbuildinfo
 coverage/
 test-results/

@@ -5,11 +5,14 @@
 **A quiet watch over your Discord community. Brought to you by HAFBOT.**
 
 Open-source honeypot and cross-channel spam detection for **one Discord server per
-deployment**, owned and managed by that server’s team. Runs as a Cloudflare Worker
-with one SQLite Durable Object. No shared service, external database, or HAFBOT
-subscription is required.
+deployment**, owned and managed by that server’s team. Run on Cloudflare Workers
+with one SQLite Durable Object, or on your own host using Docker Compose and
+SQLite. No shared service, external database, or HAFBOT subscription is required.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/rogersau/botprotect-haf)
+
+For Docker, public HTTPS, or private Tailscale access, follow the
+[Docker deployment guide](docs/docker.md). Cloudflare deployment is described below.
 
 ## Protection
 
@@ -74,6 +77,9 @@ notifications link to evidence; resolve flags in the web dashboard.
 
 ## Hosting and operation
 
+The following usage notes apply to Cloudflare. For Docker host operation,
+updates, backups, and recovery, see the [Docker guide](docs/docker.md).
+
 Discord requires an ongoing **outbound WebSocket**. Outbound connections cannot
 use Durable Object WebSocket hibernation: ongoing compute usage applies even in
 a quiet server. This is not a promise of free hosting. Check
@@ -96,7 +102,7 @@ can duplicate after an extended interruption.
 
 ## Development
 
-Requires Node.js 22.12 or newer.
+Requires Node.js 24 or newer.
 
 ```sh
 npm ci
@@ -112,7 +118,7 @@ Use a separate test application and guild. Start opens a real gateway connection
 do not reuse a bot token already running elsewhere.
 
 ```sh
-npm run check               # TypeScript, workerd tests, production build
+npm run check               # TypeScript, workerd + Node tests, Cloudflare build
 npx playwright install chromium
 npm run test:e2e            # Desktop and mobile browser checks
 npm run cf-typegen          # Bindings generated from Wrangler configuration
@@ -126,7 +132,7 @@ needs its own deployment and dedicated Discord application.
 
 ## Data and access
 
-Data stays in your Cloudflare account. Normal messages are reduced to SHA-256
+Data stays in your Cloudflare account or your Docker data volume. Normal messages are reduced to SHA-256
 fingerprints for at most five minutes. Queued gateway messages briefly retain text
 until processed; flags retain up to 500 characters of evidence for **30 days**.
 Deduplication IDs are kept for 24 hours; aggregate daily counts for 30 days.
@@ -140,15 +146,20 @@ and expires after ten minutes. API writes require a matching Origin header.
 Bot tokens and client secrets never enter the browser.
 
 Only `DISCORD_GUILD_ID` is protected. Events from other guilds are discarded.
-Changing that ID selects a different Durable Object and does not move old history.
-Delete the old deployment/namespace in Cloudflare when retiring it to remove its data.
+On Cloudflare, changing that ID selects a different Durable Object and does not
+move old history; delete the old deployment/namespace when retiring it to remove
+its data. Docker rejects a guild ID change against an existing database; use a
+separate Compose project and data volume for a different guild.
 
 ## Source and license
 
-- `worker/`: authentication/API, Discord adapter, gateway, and SQLite storage.
+- `core/`: shared detection, Discord gateway, SQLite queries, authentication, and API.
+- `worker/`: Cloudflare Durable Object and Worker adapters.
+- `server/`: Node HTTP server, file-backed SQLite, and timer adapter.
+- `compose*.yml` and `deploy/`: Docker, Caddy HTTPS, and optional Tailscale setup.
 - `shared/`: settings contract and validation.
 - `src/`: React dashboard and labelled sample data.
-- `tests/`: protection, persistence, action, and auth tests running in workerd.
+- `tests/`: protection, persistence, action, and auth tests in workerd and Node.
 - `e2e/`: desktop/mobile settings, review, setup, and live/demo separation checks.
 
 Adapted from [HAFBot](https://github.com/rogersau/hafbot), attributed in

@@ -29,7 +29,11 @@ test("explore protection, save settings, and review a demo flag", async ({ page 
   await expect(page.getByRole("heading", { name: "Honeypot triggered" })).toBeVisible();
   await navigate(page, "Setup guide");
   await expect(page.getByText("DISCORD_CLIENT_SECRET", { exact: true })).toBeVisible();
-  await expect(page.getByText("http://localhost:5173/auth/callback", { exact: true })).toBeVisible();
+  await expect(page.getByText(`${new URL(page.url()).origin}/auth/callback`, { exact: true })).toBeVisible();
+  if (process.env.E2E_RUNTIME === "docker") {
+    await expect(page.getByRole("heading", { name: "Run on your own server" })).toBeVisible();
+    await expect(page.getByText("docker compose up -d --build", { exact: true })).toBeVisible();
+  }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await navigate(page, "Overview");
   await page.getByRole("button", { name: "Dismiss notification" }).click();
