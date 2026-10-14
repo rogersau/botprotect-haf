@@ -55,7 +55,6 @@ it("uses Node WebSockets and resumes the saved gateway after a process restart",
     await vi.waitFor(async () => expect((await service.dashboard()).gateway.status).toBe("ready"));
     active!.send(JSON.stringify({ op: 0, t: "MESSAGE_CREATE", s: 4, d: message }));
     await vi.waitFor(() => expect(JSON.parse(runtime.sql.exec<{ value: string }>("SELECT value FROM meta WHERE key = ?", "gateway").one().value).sequence).toBe(4));
-    await vi.waitFor(async () => expect((await service.dashboard()).stats.messages).toBe(1));
     expect((await service.dashboard()).flags).toHaveLength(1);
     expect(received.filter((frame) => frame.op === 2)).toHaveLength(1);
   } finally {

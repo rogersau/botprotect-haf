@@ -55,7 +55,6 @@ export class GuildService {
       );
       CREATE UNIQUE INDEX IF NOT EXISTS one_open_flag ON flags(user_id) WHERE status = 'open';
       CREATE INDEX IF NOT EXISTS flags_recent ON flags(created_at);
-      CREATE TABLE IF NOT EXISTS daily (day TEXT PRIMARY KEY, messages INTEGER NOT NULL DEFAULT 0, honeypot INTEGER NOT NULL DEFAULT 0, spam INTEGER NOT NULL DEFAULT 0);
       CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, path TEXT NOT NULL, method TEXT NOT NULL, body TEXT, attempts INTEGER NOT NULL DEFAULT 0, due INTEGER NOT NULL, failed INTEGER NOT NULL DEFAULT 0);
     `);
     const configuredGuild = env.DISCORD_GUILD_ID?.trim();
@@ -105,26 +104,16 @@ export class GuildService {
   }
 
   async dashboard(): Promise<Dashboard> {
-    const flags = this.sql.exec<FlagRow>("SELECT * FROM flags ORDER BY created_at DESC LIMIT 100").toArray().map((row): Flag => ({
+    const flags = this.sql.exec<FlagRow>("SELECT * FROM flags ORDER BY CASE WHEN status = 'open' THEN 0 ELSE 1 END, created_at DESC LIMIT 100").toArray().map((row): Flag => ({
       id: row.id, userId: row.user_id, username: row.username, detector: row.detector,
       channelId: row.channel_id, messageId: row.message_id, channelIds: JSON.parse(row.channel_ids) as string[],
       preview: row.preview, createdAt: row.created_at, status: row.status, resolvedBy: row.resolved_by, resolvedAt: row.resolved_at,
     }));
-    const today = new Date().toISOString().slice(0, 10);
-    const totals = this.sql.exec<{ messages: number; honeypot: number; spam: number }>("SELECT messages, honeypot, spam FROM daily WHERE day = ?", today).toArray()[0];
-    const pending = this.sql.exec<{ count: number }>("SELECT COUNT(*) AS count FROM flags WHERE status = 'open'").one().count;
     const jobsPending = this.sql.exec<{ count: number }>("SELECT COUNT(*) AS count FROM jobs WHERE failed = 0").one().count;
     const jobsFailed = this.sql.exec<{ count: number }>("SELECT COUNT(*) AS count FROM jobs WHERE failed = 1").one().count;
-    const activity: Dashboard["activity"] = [];
-    for (let i = 6; i >= 0; i--) {
-      const day = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
-      const row = this.sql.exec<{ honeypot: number; spam: number }>("SELECT honeypot, spam FROM daily WHERE day = ?", day).toArray()[0];
-      activity.push({ day, honeypot: row?.honeypot ?? 0, spam: row?.spam ?? 0 });
-    }
     let gateway = this.get("status", emptyStatus());
     if (this.session().enabled && !this.socket && gateway.status === "ready") gateway = { ...gateway, status: "reconnecting" };
-    return { settings: this.get("settings", DEFAULT_SETTINGS), gateway, flags,
-      stats: { messages: totals?.messages ?? 0, honeypot: totals?.honeypot ?? 0, spam: totals?.spam ?? 0, pending }, activity, jobsPending, jobsFailed };
+    return { settings: this.get("settings", DEFAULT_SETTINGS), gateway, flags, jobsPending, jobsFailed };
   }
 
   async resolveFlag(id: string, status: "confirmed" | "dismissed", userId: string): Promise<boolean> {
@@ -363,11 +352,8 @@ export class GuildService {
     const settings = this.get("settings", DEFAULT_SETTINGS);
     const ignored = shouldIgnore(message, this.env.DISCORD_GUILD_ID!, settings);
     const fingerprint = !ignored && settings.spamEnabled ? await fingerprintMessage(message.content || "") : null;
-    // Commit detection, message actions, statistics, and deduplication as one transaction.
     this.runtime.transactionSync(() => {
       if (!this.sql.exec("SELECT id FROM processed WHERE id = ?", message.id).toArray().length && !ignored) {
-        const day = new Date().toISOString().slice(0, 10);
-        this.sql.exec("INSERT INTO daily(day, messages) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET messages = messages + 1", day);
         if (isHoneypot(message.channel_id, settings, this.get("channels", []))) this.detect(message, "honeypot", [message.channel_id], settings);
         if (fingerprint) {
           const now = Date.now();
@@ -385,19 +371,12 @@ export class GuildService {
     });
   }
   private detect(message: DiscordMessage, detector: Detector, channels: string[], settings: Settings): void {
-    const warn = detector === "honeypot" ? settings.honeypotWarn : settings.spamWarn;
     const remove = detector === "honeypot" ? settings.honeypotDelete : settings.spamDelete;
-    if (warn) this.queueJob(`${message.id}:${detector}:warn`, `/channels/${message.channel_id}/messages`, "POST", {
-      content: `Your message triggered BotProtect’s ${detector === "honeypot" ? "honeypot" : "cross-channel spam"} detector. A moderator will review it.`,
-      allowed_mentions: { parse: [] }, nonce: `${message.id}${detector === "honeypot" ? "h" : "s"}`, enforce_nonce: true,
-    });
     if (remove) this.queueJob(`${message.id}:delete`, `/channels/${message.channel_id}/messages/${message.id}`, "DELETE", null);
     if (this.sql.exec("SELECT id FROM flags WHERE user_id = ? AND status = 'open'", message.author.id).toArray().length) return;
     const id = crypto.randomUUID();
     const preview = (message.content || "").trim().slice(0, 500);
     this.sql.exec("INSERT INTO flags(id, user_id, username, detector, channel_id, message_id, channel_ids, preview, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", id, message.author.id, message.author.global_name || message.author.username, detector, message.channel_id, message.id, JSON.stringify(channels), preview, Date.now());
-    const column = detector === "honeypot" ? "honeypot" : "spam";
-    this.sql.exec(`UPDATE daily SET ${column} = ${column} + 1 WHERE day = ?`, new Date().toISOString().slice(0, 10));
     if (settings.reviewChannelId) this.queueJob(`${id}:notify`, `/channels/${settings.reviewChannelId}/messages`, "POST", {
       embeds: [{ title: detector === "honeypot" ? "Honeypot triggered" : "Cross-channel spam detected", color: 15570487,
         description: `Member: <@${message.author.id}>\nChannel: <#${message.channel_id}>\nMatching channels: ${channels.length}\n[View message](https://discord.com/channels/${message.guild_id}/${message.channel_id}/${message.id})`,
@@ -447,7 +426,6 @@ export class GuildService {
     this.sql.exec("DELETE FROM samples WHERE at < ?", now - 300_000);
     this.sql.exec("DELETE FROM processed WHERE at < ?", now - 86_400_000);
     this.sql.exec("DELETE FROM flags WHERE created_at < ?", now - 30 * 86_400_000);
-    this.sql.exec("DELETE FROM daily WHERE day < ?", new Date(now - 30 * 86_400_000).toISOString().slice(0, 10));
     this.sql.exec("DELETE FROM sessions WHERE expires_at < ?", now);
     this.sql.exec("DELETE FROM oauth_states WHERE expires_at < ?", now);
   }

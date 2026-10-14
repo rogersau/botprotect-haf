@@ -31,7 +31,6 @@ describe("persistent guild protection", () => {
     expect(snapshot.flags).toHaveLength(1);
     expect(snapshot.flags[0].detector).toBe("spam");
     expect(snapshot.flags[0].channelIds).toHaveLength(3);
-    expect(snapshot.stats.messages).toBe(5);
   });
   it("excludes old messages and does not mix authors or different content", async () => {
     const stub = bindings.GUILD.getByName("window-and-author");
@@ -49,18 +48,34 @@ describe("persistent guild protection", () => {
     await enqueue(stub, [first, message()]);
     const initial = await stub.dashboard();
     expect(initial.flags).toHaveLength(1);
-    expect(initial.stats.messages).toBe(2);
-    await enqueue(stub, [first]);
-    expect((await stub.dashboard()).stats.messages).toBe(2);
     const id = initial.flags[0].id;
     expect(await stub.resolveFlag(id, "dismissed", member)).toBe(true);
+    await enqueue(stub, [first]);
+    expect((await stub.dashboard()).flags).toHaveLength(1);
     await enqueue(stub, [message()]);
     expect(await stub.resolveFlag(id, "confirmed", member)).toBe(false);
     const final = await stub.dashboard();
     expect(final.flags).toHaveLength(2);
-    expect(final.stats.pending).toBe(1);
     expect(final.flags.find((flag) => flag.id === id)).toMatchObject({ status: "dismissed", resolvedBy: member });
     expect(final.flags.find((flag) => flag.id !== id)?.status).toBe("open");
+  });
+  it("keeps open flags ahead of newer resolved flags", async () => {
+    const stub = bindings.GUILD.getByName("open-first");
+    await stub.saveSettings({ ...DEFAULT_SETTINGS, honeypotEnabled: true, honeypotChannelIds: [trap] });
+    const older = message();
+    await enqueue(stub, [older]);
+    const olderFlag = (await stub.dashboard()).flags[0];
+    await runInDurableObject(stub, (_instance, state) => {
+      state.storage.sql.exec("UPDATE flags SET created_at = ? WHERE id = ?", Date.now() - 60_000, olderFlag.id);
+    });
+    const newer = message();
+    newer.author.id = "100000000000000101";
+    await enqueue(stub, [newer]);
+    const newerFlag = (await stub.dashboard()).flags.find((flag) => flag.id !== olderFlag.id)!;
+    expect(await stub.resolveFlag(newerFlag.id, "dismissed", newer.author.id)).toBe(true);
+    const snapshot = await stub.dashboard();
+    expect(snapshot.flags[0]).toMatchObject({ id: olderFlag.id, status: "open" });
+    expect(snapshot.flags[1]).toMatchObject({ id: newerFlag.id, status: "dismissed" });
   });
   it("preserves settings and flags across eviction", async () => {
     const stub = bindings.GUILD.getByName("restart");

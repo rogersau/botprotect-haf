@@ -1,12 +1,10 @@
 export interface Settings {
   honeypotEnabled: boolean;
   honeypotChannelIds: string[];
-  honeypotWarn: boolean;
   honeypotDelete: boolean;
   spamEnabled: boolean;
   spamThreshold: number;
   spamWindowSeconds: number;
-  spamWarn: boolean;
   spamDelete: boolean;
   excludedRoleIds: string[];
   reviewChannelId: string | null;
@@ -15,12 +13,10 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   honeypotEnabled: false,
   honeypotChannelIds: [],
-  honeypotWarn: false,
   honeypotDelete: false,
   spamEnabled: true,
   spamThreshold: 5,
   spamWindowSeconds: 60,
-  spamWarn: false,
   spamDelete: false,
   excludedRoleIds: [],
   reviewChannelId: null,
@@ -73,8 +69,6 @@ export interface Dashboard {
   settings: Settings;
   gateway: GatewayStatus;
   flags: Flag[];
-  stats: { messages: number; honeypot: number; spam: number; pending: number };
-  activity: { day: string; honeypot: number; spam: number }[];
   jobsPending: number;
   jobsFailed: number;
 }

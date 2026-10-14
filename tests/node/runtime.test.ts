@@ -36,13 +36,13 @@ describe("Node SQLite runtime", () => {
     for (const item of [first, message(trap), message("100000000000000011", "ＳＡＭＥ  message")]) f.runtime.sql.exec("INSERT INTO inbox VALUES (?, ?, ?)", item.id, JSON.stringify(item), Date.now());
     await f.service.watchdog();
     const dashboard = await f.service.dashboard();
-    expect(dashboard.stats.messages).toBe(3);
     expect(dashboard.flags).toHaveLength(1);
     expect(dashboard.flags[0]).toMatchObject({ detector: "spam", status: "open" });
     expect(dashboard.flags[0].channelIds).toHaveLength(2);
+    await f.service.resolveFlag(dashboard.flags[0].id, "dismissed", "100000000000000001");
     f.runtime.sql.exec("INSERT INTO inbox VALUES (?, ?, ?)", first.id, JSON.stringify(first), Date.now());
     await f.service.watchdog();
-    expect((await f.service.dashboard()).stats.messages).toBe(3);
+    expect((await f.service.dashboard()).flags).toHaveLength(1);
   });
   it("keeps settings, flags, and server-side sessions after closing and reopening the database", async () => {
     const f = await fixture();
