@@ -1,6 +1,6 @@
 # HAFBot attribution
 
-BotProtect is brought to you by [HAFBOT](https://github.com/rogersau/hafbot).
+BotProtect is brought to you by [HAFBOT](https://hafbot.xyz).
 Its message normalization and detection behavior are adapted from HAFBot’s
 Bot Defense, with independent persistence and gateway implementations.
 

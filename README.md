@@ -87,6 +87,6 @@ development commands, see the [technical guide](docs/technical.md).
 
 ## Open source
 
-BotProtect is adapted from [HAFBot](https://github.com/rogersau/hafbot) and released
+BotProtect is adapted from [HAFBot](https://hafbot.xyz) and released
 under the [MIT license](LICENSE). See [credits](THIRD_PARTY_NOTICES.md) for the
 original project attribution.

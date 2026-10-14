@@ -208,7 +208,7 @@ separate Compose project and data volume for a different guild.
 - `tests/`: protection, persistence, action, and auth tests in workerd and Node.
 - `e2e/`: desktop/mobile settings, review, setup, and live/demo separation checks.
 
-Adapted from [HAFBot](https://github.com/rogersau/hafbot), attributed in
+Adapted from [HAFBot](https://hafbot.xyz), attributed in
 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md). Licensed under [MIT](../LICENSE).
 See [Cloudflare deploy buttons](https://developers.cloudflare.com/workers/platform/deploy-buttons/)
 and [Discord’s Gateway documentation](https://docs.discord.com/developers/events/gateway)
