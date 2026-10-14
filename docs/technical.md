@@ -18,10 +18,10 @@ external database or a shared HAFBOT service.
   whitespace, and full-width Unicode differences are ignored. Empty and
   attachment-only messages do not count.
 - **Exemptions:** bots, webhooks, and configured trusted roles bypass detection.
-- **Review:** one unresolved flag per member, evidence, Confirm Bot / Dismiss,
+- **Review:** one unresolved flag per member, evidence, Confirm flag / Dismiss flag,
   reviewer ID, and decision time. Confirmation records a decision only.
-- **Message actions:** optional warning and deletion, configured per detector.
-  These run on every trip, even while a member already has an unresolved flag.
+- **Message deletion:** optional per detector. Deletion runs on every trip, even
+  while a member already has an unresolved flag.
 - **Guild management:** Discord sign-in with owner, Administrator, or Manage Server
   permission. Permissions are checked against Discord on every API request.
 
@@ -58,7 +58,7 @@ described below. For Docker, put them in the `.env` file described in the
    values as **Worker runtime secrets**, not just build variables.
 3. In Discord **OAuth2 → Redirects**, add the exact deployed callback URL:
    `https://YOUR-WORKER.workers.dev/auth/callback`. Use your custom domain if
-   applicable. The app’s Setup Guide displays its current callback URL.
+   applicable. The app’s **Setup** section displays its current callback URL.
 4. [Invite the bot](#invite-the-bot) and finish the protection setup below.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/rogersau/botprotect-haf)
@@ -73,8 +73,7 @@ In the Discord Developer Portal, open your application’s **Installation → Gu
 Install** settings. Select the `bot` scope and these permissions:
 
 - **View Channels** for monitored channels.
-- **Send Messages** and **Embed Links** for warnings and the private staff review
-  channel.
+- **Send Messages** and **Embed Links** for the private staff review channel.
 - **Manage Messages** when deletion is enabled.
 
 Do not grant Administrator. Use the installation link to invite the bot to the
@@ -85,7 +84,7 @@ bot’s server role.
 ## Configure and validate protection
 
 Sign in with Discord as the server owner or a member with Administrator or Manage
-Server permission. Configure your detectors in **Protections**, save, and select
+Server permission. Configure your detectors in **Protection settings**, save, and select
 **Start protection**. Use **Check connection** to verify bot credentials and guild
 access; it does not check every channel overwrite or privileged intent.
 
@@ -104,8 +103,8 @@ notifications link to evidence; resolve flags in the web dashboard.
 
 ### Setup troubleshooting
 
-- **Demo mode:** finish setting all four Discord values. Without credentials, the
-  app displays sample data; demo actions do not reach Discord.
+- **Finish Discord setup:** set all four Discord values. Without credentials, the
+  app shows setup instructions and keeps protection controls unavailable.
 - **Discord sign-in fails:** check that the OAuth2 redirect matches the exact
   website origin and `/auth/callback` path. Docker’s `PUBLIC_URL` must match the
   address used by the browser.
@@ -114,7 +113,7 @@ notifications link to evidence; resolve flags in the web dashboard.
 - **Connected, but no flags:** check Message Content Intent, channel permissions,
   saved detector settings, and whether the test account has an excluded role.
   Bot and webhook messages are always excluded.
-- **Warnings or deletion fail:** check the bot’s permissions in the affected
+- **Notifications or deletion fail:** check the bot’s permissions in the affected
   channel. Failed actions appear in the dashboard and can be retried.
 
 ## Cloudflare hosting and operation
@@ -151,8 +150,8 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173`. Without credentials, the app shows a labelled demo.
-Demo actions affect only the current page and never reach Discord.
+Open `http://localhost:5173`. Without credentials, the app shows the setup
+checklist. Settings and review controls require a Discord manager sign-in.
 
 For a live local connection, copy `.dev.vars.example` to `.dev.vars`, fill in the
 values, and register `http://localhost:5173/auth/callback` in Discord OAuth2.
@@ -180,9 +179,10 @@ see [Docker validation](docker.md#validate-the-deployment).
 Data stays in your Cloudflare account or your Docker data volume. Normal messages
 are reduced to SHA-256 fingerprints for at most five minutes. Queued gateway
 messages briefly retain text until processed; flags retain up to 500 characters
-of evidence for **30 days**. Deduplication IDs are kept for 24 hours; aggregate
-daily counts for 30 days. Cleanup runs in alarms and the cron. The dashboard shows
-the latest 100 flags.
+of evidence for **30 days**. Deduplication IDs are kept for 24 hours. Cleanup runs
+in alarms and the cron. The dashboard shows up to 100 flags, prioritising open
+flags, then newest first. Historical message counts and activity charts are not
+collected.
 
 OAuth access tokens remain server-side. Session cookies are opaque, HTTP-only,
 SameSite=Lax, and Secure on HTTPS. Only hashes of cookie tokens are stored for
@@ -204,9 +204,9 @@ separate Compose project and data volume for a different guild.
 - `server/`: Node HTTP server, file-backed SQLite, and timer adapter.
 - `compose*.yml` and `deploy/`: Docker, Caddy HTTPS, and optional Tailscale setup.
 - `shared/`: settings contract and validation.
-- `src/`: React dashboard and labelled sample data.
+- `src/`: single-page React interface for setup, protection settings, and review.
 - `tests/`: protection, persistence, action, and auth tests in workerd and Node.
-- `e2e/`: desktop/mobile settings, review, setup, and live/demo separation checks.
+- `e2e/`: desktop/mobile setup, sign-in boundaries, settings, and review checks.
 
 Adapted from [HAFBot](https://hafbot.xyz), attributed in
 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md). Licensed under [MIT](../LICENSE).

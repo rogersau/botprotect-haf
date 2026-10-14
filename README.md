@@ -19,7 +19,9 @@ Hosting services have their own plans and usage limits.
 - **Spots repeated messages across channels.** By default, it flags someone who
   sends the same message in five different channels within 60 seconds.
 - **Keeps your team in control.** Review the evidence and confirm or dismiss each
-  flag. You can also enable warning messages or message deletion.
+  flag. You can also enable message deletion for either protection.
+
+Connection status, protection settings, and the review queue are on one page.
 
 BotProtect never automatically bans, kicks, or times out members. Confirming a
 flag records your decision; any action against the member is taken in Discord.
@@ -52,14 +54,14 @@ bot and server belong to your installation.
    it to your server. The [setup guide](docs/technical.md#invite-the-bot) lists the
    permissions it needs.
 5. **Turn protection on.** Open your new website and sign in with Discord. In
-   **Protections**, choose your channels and any trusted roles to exclude, save,
+   **Protection settings**, choose your channels and any trusted roles to exclude, save,
    then select **Start protection**. You must be the server owner or have
    **Administrator** or **Manage Server** permission.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/rogersau/botprotect-haf)
 
-If you see **demo mode**, the site is showing sample data and is not protecting
-your server yet. Finish entering your Discord details before starting protection.
+If you see **Finish Discord setup**, open **Setup** and complete the missing
+Discord details. Sign in before changing settings or starting protection.
 
 ## Set up your first protection
 

@@ -20,7 +20,7 @@ cp .env.example .env
 docker compose up -d --build --wait
 ```
 
-Open `http://localhost:3000`. Empty Discord credentials show a labelled demo.
+Open `http://localhost:3000`. Empty Discord credentials show the setup checklist.
 Fill in `.env` to connect your dedicated application and guild:
 
 ```dotenv

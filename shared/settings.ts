@@ -28,12 +28,10 @@ export function validateSettings(value: unknown): Settings {
   const result: Settings = {
     honeypotEnabled: boolean("honeypotEnabled"),
     honeypotChannelIds: ids("honeypotChannelIds", 10),
-    honeypotWarn: boolean("honeypotWarn"),
     honeypotDelete: boolean("honeypotDelete"),
     spamEnabled: boolean("spamEnabled"),
     spamThreshold: integer("spamThreshold", 2, 20),
     spamWindowSeconds: integer("spamWindowSeconds", 5, 300),
-    spamWarn: boolean("spamWarn"),
     spamDelete: boolean("spamDelete"),
     excludedRoleIds: ids("excludedRoleIds", 50),
     reviewChannelId: input.reviewChannelId as string | null,
