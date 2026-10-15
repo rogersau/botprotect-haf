@@ -3,20 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BotProtect — a quiet watch over your Discord community</title>
+<meta name="theme-color" content="#080c14">
+<meta name="color-scheme" content="dark">
+<title>BotProtect by HAFBOT — a quiet watch over your Discord community</title>
 <meta name="description" content="BotProtect helps your moderation team spot suspicious activity in a Discord server, with a website for setup and review. Free and open source, brought to you by HAFBOT.">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <style>
   :root {
-    --bg: #0d2721;
-    --panel: #14362d;
-    --panel-2: #18402f;
-    --line: #234a3a;
-    --text: #e6f2e9;
-    --muted: #9dbfa7;
-    --accent: #d9f99d;
-    --accent-dark: #153c32;
-    --warn: #fde68a;
+    --bg: #080c14;
+    --panel: #0d131e;
+    --panel-2: #101827;
+    --line: #293349;
+    --text: #f4f6fb;
+    --muted: #a4aebb;
+    --faint: #8c97ab;
+    --accent: #aeb9ff;
+    --accent-strong: #5865f2;
+    --phosphor: #49f9c3;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --display: Arial, "Helvetica Neue", sans-serif;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -24,253 +30,376 @@
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font: 16px/1.7 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  a { color: var(--accent); }
-  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-  code {
-    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.9em;
-    background: rgba(217, 249, 157, 0.09);
-    border-radius: 5px;
-    padding: 0.12em 0.35em;
+  ::selection { background: var(--accent); color: var(--bg); }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { color: #dce1ff; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  svg { display: block; flex-shrink: 0; }
+  .wrap { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
+  .skip-link {
+    position: fixed; top: 12px; left: 16px; z-index: 30;
+    padding: 8px 16px; border-radius: 6px;
+    color: var(--bg); background: var(--accent); transform: translateY(-180%);
   }
-  .wrap { max-width: 1020px; margin: 0 auto; padding: 0 24px; }
+  .skip-link:focus { transform: translateY(0); }
 
-  /* Header */
-  header.site {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: rgba(13, 39, 33, 0.9);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--line);
+  /* The palette, typography, and signal graphics follow HAFBOT's landing page. */
+  .site-header {
+    position: sticky; top: 0; z-index: 20;
+    background: #090d15ed;
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid #202837;
   }
-  .bar { display: flex; align-items: center; gap: 12px; padding-block: 14px; }
-  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 18px; letter-spacing: 0.2px; }
-  .brand img { width: 32px; height: 32px; }
-  .brand .sub { color: var(--muted); font-weight: 500; font-size: 14px; }
-  .skew { flex: 1; }
-  .bar a.action { font-size: 14.5px; }
-
-  /* Hero */
-  .hero { padding: 72px 0 48px; }
-  .pill {
-    display: inline-block;
-    border: 1px solid var(--line);
-    color: var(--muted);
-    border-radius: 999px;
-    padding: 4px 14px;
-    font-size: 13.5px;
-    margin-bottom: 20px;
+  .bar { display: flex; align-items: center; gap: 28px; min-height: 78px; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 11px; margin-right: auto;
+    color: var(--text); text-decoration: none; line-height: 1.25;
   }
-  h1 { font-size: clamp(32px, 5.4vw, 52px); line-height: 1.15; margin: 0 0 18px; letter-spacing: -0.5px; }
-  h1 em { font-style: normal; color: var(--accent); }
-  .hero p.lead { font-size: 19px; color: var(--muted); max-width: 640px; margin: 0 0 30px; }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .brand img { width: 42px; height: 42px; border-radius: 50%; }
+  .brand-name { display: block; font: 700 15px/1.3 var(--display); letter-spacing: .04em; text-transform: uppercase; }
+  .brand-byline { display: block; margin-top: 4px; color: var(--faint); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; }
+  .nav-link { color: #bdc4d1; text-decoration: none; font: 600 12px var(--display); padding-block: 12px; }
+  .nav-link:hover { color: white; }
   .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 20px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    transition: transform 0.12s ease, background 0.12s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 48px; padding: 14px 21px; border: 1px solid var(--line);
+    border-radius: 9px; color: #dbe1ec; background: #0d131e88;
+    font: 700 12px/1.5 var(--display); letter-spacing: .04em; text-decoration: none;
+    transition: transform .18s, background .18s, border-color .18s, box-shadow .2s;
   }
-  .btn:hover { transform: translateY(-1px); }
-  .btn.primary { background: var(--accent); color: var(--accent-dark); }
-  .btn.primary:hover { background: #e4fbb0; }
-  .btn.ghost { color: var(--text); border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02); }
-  .btn.ghost:hover { border-color: var(--muted); }
-  .deploy-btn img { height: 38px; display: inline-block; }
-  .facts { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 34px; color: var(--muted); font-size: 14px; }
-  .facts strong { display: block; color: var(--text); font-size: 15px; }
+  .btn:hover { color: white; border-color: #92a0ef; transform: translateY(-2px); }
+  .btn.primary {
+    color: white; background: var(--accent-strong); border-color: #7480ff;
+    box-shadow: inset 0 1px #ffffff26, 0 12px 34px -10px #5865f2b3;
+  }
+  .btn.primary:hover { background: #4752c4; box-shadow: 0 16px 40px -12px #5865f2cc; }
+  .nav-deploy { min-height: 40px; padding: 10px 17px; font-size: 11px; box-shadow: none; }
 
-  /* Sections */
-  section { padding: 44px 0; }
-  section[id] { scroll-margin-top: 80px; }
-  h2 { font-size: 26px; letter-spacing: -0.3px; margin: 0 0 8px; }
-  .section-sub { color: var(--muted); margin: 0 0 28px; max-width: 620px; }
+  .eyebrow {
+    display: flex; align-items: center; gap: 10px; margin: 0;
+    color: #a0adfa; font: 700 10px/1.6 var(--display);
+    letter-spacing: .14em; text-transform: uppercase;
+  }
+  .status-dot { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: var(--phosphor); box-shadow: 0 0 10px #49f9c380; }
+  .status-dot::after { content: ""; display: block; width: 15px; height: 15px; margin: -4px; border: 1px solid #49f9c380; border-radius: 50%; }
+  .hero-scene { position: relative; isolation: isolate; overflow: clip; }
+  .hero-scene::before {
+    content: ""; position: absolute; z-index: -1; pointer-events: none;
+    width: 1100px; aspect-ratio: 1; top: -270px; right: -270px; border-radius: 50%;
+    background:
+      radial-gradient(circle, #49f9c32e 1px, transparent 1.5px) 0 0 / 29px 29px,
+      repeating-radial-gradient(circle, transparent 0 113px, #49f9c314 114px 115px, transparent 116px 190px),
+      repeating-conic-gradient(#49f9c30c 0deg .12deg, transparent .12deg 30deg),
+      radial-gradient(circle, #0d554332, transparent 68%);
+    mask-image: linear-gradient(90deg, transparent, black 35%);
+  }
+  .hero {
+    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+    align-items: center; gap: clamp(36px, 6vw, 80px); padding-block: 96px 90px;
+  }
+  h1 {
+    max-width: 14ch; margin: 24px 0 28px;
+    font: italic 800 clamp(46px, 5.2vw, 70px)/1 var(--display);
+    letter-spacing: -.045em; text-transform: uppercase; text-wrap: balance;
+    text-shadow: 0 0 28px #7289fb29;
+  }
+  .lead { max-width: 520px; margin: 0 0 34px; color: var(--muted); font-size: 16.5px; line-height: 1.75; }
+  .cta-row, .deploy-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .hero-trust { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 28px 0 0; padding: 0; list-style: none; color: var(--faint); font-size: 11px; }
+  .hero-trust li { display: flex; align-items: center; gap: 8px; }
+  .hero-trust li::before { content: "✓"; display: grid; place-items: center; width: 15px; height: 15px; border: 1px solid #49f9c34d; border-radius: 50%; color: var(--phosphor); font-size: 9px; }
+
+  /* An illustration of the detection flow, never a live status indicator. */
+  .scope {
+    width: min(100%, 440px); justify-self: end;
+    border: 1px solid #305052; border-radius: 20px;
+    background: linear-gradient(#0e1a20a6, #080d14f5);
+    box-shadow: inset 0 1px #ffffff0d, 0 35px 80px -30px #000d, 0 0 70px -24px #49f9c34d;
+  }
+  .scope-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 13px 16px; color: var(--phosphor); border-bottom: 1px solid #49f9c324;
+    font: 600 9px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  }
+  .scope-bar > :last-child { color: var(--faint); }
+  .scope-display {
+    position: relative; isolation: isolate; aspect-ratio: 1; margin: 20px;
+    border: 1px solid #49f9c345; border-radius: 50%;
+    background:
+      linear-gradient(#49f9c33d, #49f9c33d) center / 1px 100% no-repeat,
+      linear-gradient(#49f9c33d, #49f9c33d) center / 100% 1px no-repeat,
+      repeating-radial-gradient(circle, transparent 0 23%, #49f9c329 23.3% 23.6%, transparent 24% 35%),
+      repeating-conic-gradient(#49f9c321 0deg .5deg, transparent .5deg 30deg),
+      radial-gradient(circle, #112b24aa, #080f14 72%);
+  }
+  .scope-sweep {
+    position: absolute; z-index: -1; inset: 0; border-radius: 50%;
+    background: conic-gradient(from 230deg, transparent 0deg 280deg, #49f9c308 290deg, #49f9c36b 359deg, transparent 360deg);
+    animation: sweep 22s linear infinite;
+  }
+  @keyframes sweep { to { transform: rotate(360deg); } }
+  .scope-logo {
+    position: absolute; width: 44px; height: 44px; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); border: 1px solid #49f9c34d; border-radius: 50%;
+    box-shadow: 0 0 22px #49f9c329;
+  }
+  .bearing { position: absolute; color: #69bca6; font: 8px var(--mono); }
+  .bearing.n { top: 9%; left: 50%; transform: translateX(-50%); }
+  .bearing.e { top: 50%; right: 7%; transform: translateY(-50%); }
+  .bearing.s { bottom: 8%; left: 50%; transform: translateX(-50%); }
+  .bearing.w { top: 50%; left: 7%; transform: translateY(-50%); }
+  .blip { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 8px; white-space: nowrap; }
+  .blip b { padding: 3px 7px; border: 1px solid #49f9c34d; border-radius: 4px; background: #071711e8; color: #74f5d1; font: 600 10px/1.5 var(--mono); }
+  .blip i { width: 8px; height: 8px; border-radius: 50%; background: var(--phosphor); box-shadow: 0 0 6px #49f9c3, 0 0 18px #49f9c380; }
+  .blip.trap { left: 29%; top: 28%; }
+  .blip.spam { left: 73%; top: 36%; }
+  .blip.review { left: 49%; top: 77%; }
+  .scope-footer { border-top: 1px solid #49f9c324; border-bottom: 0; color: var(--faint); font-size: 8px; }
+
+  .facts-strip { border-block: 1px solid #202b3d; background: #0d121d80; }
+  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; padding-block: 25px; }
+  .facts div { color: var(--faint); font-size: 12px; }
+  .facts strong { display: block; color: #dce1ec; font: 700 12px/1.6 var(--display); margin-bottom: 4px; }
+
+  .content-section { padding-block: 86px 0; scroll-margin-top: 105px; }
+  .section-heading { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); align-items: end; gap: 80px; margin-bottom: 34px; }
+  h2 { margin: 14px 0 0; font: italic 800 clamp(32px, 3.5vw, 44px)/1.06 var(--display); letter-spacing: -.035em; text-transform: uppercase; text-wrap: balance; }
+  .section-heading > p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.75; }
   .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 24px 22px;
-  }
-  .card h3 { margin: 14px 0 8px; font-size: 17.5px; }
-  .card p { margin: 0; color: var(--muted); font-size: 15px; }
-  .glow {
-    width: 40px; height: 40px;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(217, 249, 157, 0.12);
-    color: var(--accent);
-    border-radius: 10px;
-    font-size: 20px;
-  }
+  .card { padding: 27px 25px; border: 1px solid var(--line); border-radius: 13px; background: linear-gradient(#10182799, transparent 80%), var(--panel); }
+  .card-top { display: flex; align-items: center; justify-content: space-between; }
+  .feature-icon { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #aeb9ff30; border-radius: 10px; color: var(--accent); background: #aeb9ff0d; }
+  .index { color: #8996b0; font: 11px var(--mono); letter-spacing: .1em; }
+  .card h3 { margin: 22px 0 10px; font: 700 18px/1.4 var(--display); }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.8; }
   .calm {
-    margin-top: 22px;
-    background: var(--panel-2);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 20px 22px;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
+    display: flex; align-items: flex-start; gap: 15px; margin-top: 20px; padding: 21px 24px;
+    border: 1px solid #49f9c329; border-radius: 11px; background: #49f9c307;
   }
-  .calm p { margin: 0; font-size: 15px; color: var(--muted); }
-  .calm strong { color: var(--text); }
+  .calm > svg { margin-top: 3px; color: var(--phosphor); }
+  .calm p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.8; }
+  .calm strong { color: #d5e9e4; }
 
-  /* Deploy cards */
-  .deploys { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; }
-  .deploy-card {
-    min-width: 0;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 26px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .deploy-card .tag { color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; }
-  .deploy-card h3 { margin: 0; font-size: 21px; }
-  .deploy-card p { margin: 0; color: var(--muted); font-size: 15px; }
-  ol.steps { margin: 0; padding-left: 20px; color: var(--muted); font-size: 14.5px; }
-  ol.steps li { margin-bottom: 9px; }
-  ol.steps li::marker { color: var(--accent); font-weight: 600; }
-  pre {
-    margin: 0;
-    background: #0a211b;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 16px;
-    overflow-x: auto;
-    font-size: 13.5px;
-    line-height: 1.7;
-  }
-  pre code { background: none; padding: 0; color: var(--text); }
-  .side { font-weight: 600; color: var(--comando, #7dd3a0); }
-  pre .cmt { color: #6e9482; }
+  .deploy-section { padding-bottom: 96px; }
+  .deploys { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+  .deploy-card { min-width: 0; display: flex; flex-direction: column; gap: 20px; padding: 30px; border: 1px solid #313c51; border-radius: 14px; background: linear-gradient(#10172680, transparent 55%), var(--panel); }
+  .deploy-card.recommended { border-color: #6877bd; background: linear-gradient(#1b254859, transparent 55%), #0e1422; box-shadow: inset 0 1px #ffffff0d, 0 24px 60px -40px #5865f280; }
+  .deploy-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .provider { display: flex; align-items: center; gap: 9px; color: var(--accent); font: 700 11px var(--display); letter-spacing: .1em; text-transform: uppercase; }
+  .tag { padding: 4px 8px; border: 1px solid #aeb9ff40; border-radius: 5px; color: #c8d0ff; background: #aeb9ff0d; font: 600 9px var(--display); letter-spacing: .07em; text-transform: uppercase; }
+  .deploy-card h3 { margin: 0; font: 700 24px/1.25 var(--display); letter-spacing: -.02em; }
+  .deploy-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.8; }
+  .steps { margin: 0; padding-left: 22px; color: var(--muted); font-size: 13.5px; }
+  .steps li { padding-left: 4px; margin-bottom: 13px; }
+  .steps li:last-child { margin-bottom: 0; }
+  .steps li::marker { color: var(--accent); font-family: var(--mono); font-weight: 600; }
+  .steps strong { color: #d6dce8; font-weight: 600; }
+  code { padding: .15em .35em; border-radius: 4px; background: #aeb9ff0d; color: #c8d0ed; font: .86em var(--mono); overflow-wrap: anywhere; }
+  pre { margin: 0; padding: 16px; border: 1px solid #273146; border-radius: 9px; background: #070c14; overflow-x: auto; font-size: 12px; line-height: 1.9; }
+  pre code { padding: 0; background: none; color: #c8d0df; font: inherit; font-family: var(--mono); overflow-wrap: normal; }
+  .cmt { color: var(--faint); }
+  .deploy-actions { margin-top: auto; padding-top: 6px; }
+  .deploy-actions .btn { min-height: 44px; padding: 11px 17px; font-size: 11px; }
 
-  /* Footer */
-  footer {
-    border-top: 1px solid var(--line);
-    margin-top: 40px;
-    padding: 30px 0 42px;
-    color: var(--muted);
-    font-size: 14.5px;
-  }
-  .foot { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; }
-  .foot .links { display: flex; flex-wrap: wrap; gap: 18px; }
+  .site-footer { border-top: 1px solid #202837; background: #070b12; color: var(--faint); }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 28px; }
+  .footer-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: #dce1ec; font: 700 13px var(--display); }
+  .footer-brand img { width: 32px; height: 32px; border-radius: 50%; }
+  .footer-brand small { display: block; margin-top: 5px; color: var(--faint); font: 10px system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+  .footer-links { display: flex; flex-wrap: wrap; gap: 22px; font: 600 11px var(--display); }
+  .footer-links a { color: #aab4c5; text-decoration: none; }
+  .footer-links a:hover { color: var(--accent); }
+  .credits { border-top: 1px solid #1c2433; padding-block: 18px 24px; color: var(--faint); font-size: 11px; }
+  .credits p { margin: 0; }
+  .credits a { color: #aab4c5; }
 
+  @media (max-width: 1000px) {
+    .hero { grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 30px; }
+    h1 { font-size: 55px; }
+    .section-heading { gap: 40px; }
+    .deploy-card { padding: 25px; }
+  }
   @media (max-width: 780px) {
+    .hero { grid-template-columns: 1fr; gap: 52px; padding-block: 66px; }
+    h1 { max-width: 17ch; font-size: clamp(42px, 7.5vw, 58px); }
+    .lead { max-width: 570px; }
+    .scope { justify-self: center; width: min(100%, 380px); }
+    .hero-scene::before { top: 80px; right: -530px; opacity: .65; }
     .grid, .deploys { grid-template-columns: 1fr; }
-    .hero { padding: 52px 0 36px; }
+    .section-heading { grid-template-columns: 1fr; gap: 22px; }
+    .section-heading > p { max-width: 580px; }
+    .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+    .content-section { padding-top: 64px; }
+    .deploy-section { padding-bottom: 66px; }
+    .foot { align-items: flex-start; flex-direction: column; gap: 24px; }
   }
-  @media (max-width: 480px) {
-    .brand .sub { display: none; }
+  @media (max-width: 600px) {
+    .wrap { width: calc(100% - 32px); }
+    .bar { gap: 16px; min-height: 72px; }
+    .brand img { width: 34px; height: 34px; }
+    .brand-name { font-size: 13px; }
+    .brand-byline { font-size: 8px; }
+    .nav-secondary { display: none; }
+    .nav-deploy { padding-inline: 13px; }
+    .hero { padding-top: 54px; }
+    h1 { font-size: clamp(38px, 9.8vw, 48px); margin-block: 20px 26px; }
+    .lead { font-size: 15px; }
+    .cta-row .btn { width: 100%; }
+    .hero-trust { gap: 11px 20px; }
+    .eyebrow { font-size: 9px; }
+    .scope-display { margin: 16px; }
+    .scope-bar { padding: 12px; font-size: 8px; }
+    .scope-footer { font-size: 7px; letter-spacing: .09em; }
+    .blip b { font-size: 9px; padding-inline: 5px; }
+    .scope-logo { width: 38px; height: 38px; }
+    h2 { font-size: 34px; }
+    .card, .deploy-card { padding: 23px; }
+    .calm { padding: 20px; gap: 12px; }
+    .deploy-card h3 { font-size: 22px; }
+    .deploy-actions { align-items: stretch; }
+    .deploy-actions .btn { flex: 1 1 180px; }
+    .footer-links { gap: 20px; }
+  }
+  @media (max-width: 380px) {
+    .nav-github { display: none; }
+    .bar { gap: 12px; }
+    .hero-trust { flex-direction: column; }
+    .tag { font-size: 8px; }
   }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .btn { transition: none; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
     .btn:hover { transform: none; }
   }
 </style>
 </head>
 <body>
-
-<header class="site">
-  <div class="wrap bar">
-    <a class="brand" href="https://hafbot.xyz">
-      <img src="icon.svg" alt="BotProtect shield">
-      BotProtect <span class="sub">by HAFBOT</span>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <nav class="wrap bar" aria-label="Main navigation">
+    <a class="brand" href="./" aria-label="BotProtect home">
+      <img src="hafbot-logo.png" alt="" width="42" height="42">
+      <span><span class="brand-name">BotProtect</span><span class="brand-byline">by HAFBOT</span></span>
     </a>
-    <span class="skew"></span>
-    <a class="action" href="https://github.com/rogersau/botprotect-haf">GitHub</a>
-  </div>
+    <a class="nav-link nav-secondary" href="#what">Protection</a>
+    <a class="nav-link nav-secondary" href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md">Docs</a>
+    <a class="nav-link nav-github" href="https://github.com/rogersau/botprotect-haf">GitHub</a>
+    <a class="btn primary nav-deploy" href="#deploy">Deploy <span aria-hidden="true">↗</span></a>
+  </nav>
 </header>
 
-<main class="wrap">
+<main id="main" tabindex="-1">
+  <div class="hero-scene">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>From HAFBOT · Built for Discord</p>
+        <h1 id="hero-title">A quiet watch over your Discord community.</h1>
+        <p class="lead">BotProtect helps your moderation team spot suspicious activity in your Discord
+          server. Set up protection and review flagged members in one web dashboard.
+          One installation, one server, managed by your team.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="https://deploy.workers.cloudflare.com/?url=https://github.com/rogersau/botprotect-haf">Deploy to Cloudflare <span aria-hidden="true">↗</span></a>
+          <a class="btn" href="#deploy">Deployment options <span aria-hidden="true">↓</span></a>
+        </div>
+        <ul class="hero-trust">
+          <li>Free &amp; open source</li>
+          <li>Your own hosting</li>
+          <li>No auto-bans</li>
+        </ul>
+      </div>
+      <div class="scope" role="img" aria-label="Illustration of BotProtect's detection flow: trap-channel posts and repeated messages are flagged for staff review. This is not live activity.">
+        <div class="scope-bar"><span>Detection &amp; review</span><span>BotProtect</span></div>
+        <div class="scope-display">
+          <span class="bearing n" aria-hidden="true">000</span>
+          <span class="bearing e" aria-hidden="true">090</span>
+          <span class="bearing s" aria-hidden="true">180</span>
+          <span class="bearing w" aria-hidden="true">270</span>
+          <div class="scope-sweep" aria-hidden="true"></div>
+          <div class="blip trap"><b>Trap channel</b><i></i></div>
+          <div class="blip spam"><b>Repeat spam</b><i></i></div>
+          <div class="blip review"><b>Staff review</b><i></i></div>
+          <img class="scope-logo" src="hafbot-logo.png" alt="" width="44" height="44">
+        </div>
+        <div class="scope-bar scope-footer"><span>Illustrative preview</span><span>Not live activity</span></div>
+      </div>
+    </section>
+  </div>
 
-  <div class="hero">
-    <span class="pill">Single-guild · Open source · MIT</span>
-    <h1>A quiet watch over your <em>Discord community</em>.</h1>
-    <p class="lead">
-      BotProtect helps your moderation team spot suspicious activity in your Discord
-      server. It comes with a website where staff can set up protection and review
-      flagged members — one installation, one server, managed by that server's team.
-    </p>
-    <div class="cta-row">
-      <a class="deploy-btn" href="https://deploy.workers.cloudflare.com/?url=https://github.com/rogersau/botprotect-haf" title="Deploy to Cloudflare">
-        <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare">
-      </a>
-      <a class="btn ghost" href="#deploy">Deployment options</a>
-      <a class="btn ghost" href="https://github.com/rogersau/botprotect-haf">View source</a>
-    </div>
-    <div class="facts">
-      <div><strong>Trap channel</strong> posts in a “do not post” channel</div>
-      <div><strong>Repeat spam</strong> same message across channels</div>
-      <div><strong>Review queue</strong> staff confirm or dismiss every flag</div>
-      <div><strong>No auto-bans</strong> your team makes every call</div>
+  <div class="facts-strip">
+    <div class="wrap facts">
+      <div><strong>Trap channel</strong>Catch posts where no one should post.</div>
+      <div><strong>Repeat spam</strong>Spot the same message across channels.</div>
+      <div><strong>Review queue</strong>Confirm or dismiss every flag.</div>
+      <div><strong>Your team decides</strong>No automatic bans, kicks, or timeouts.</div>
     </div>
   </div>
 
-  <section id="what">
-    <h2>What does it do?</h2>
-    <p class="section-sub">
-      Two protection detectors run quietly in the background. When something looks
-      suspicious, your team gets a notification and a review page with the evidence.
-    </p>
+  <section class="wrap content-section" id="what" aria-labelledby="what-title">
+    <header class="section-heading">
+      <div><p class="eyebrow">Two detectors. Your decision.</p><h2 id="what-title">Protection on your terms.</h2></div>
+      <p>Two protection detectors run quietly in the background. When something looks
+        suspicious, your team gets a notification and a review page with the evidence.</p>
+    </header>
     <div class="grid">
-      <div class="card">
-        <div class="glow">🕳️</div>
+      <article class="card">
+        <div class="card-top">
+          <div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3 7 21M17 3l-2 18M4 9h17M3 15h17"/></svg></div>
+          <span class="index" aria-hidden="true">01</span>
+        </div>
         <h3>Catches posts in a trap channel</h3>
         <p>Create a clearly marked “do not post” channel. Members who post there get
-        flagged for your team to review.</p>
-      </div>
-      <div class="card">
-        <div class="glow">🔁</div>
+          flagged for your team to review.</p>
+      </article>
+      <article class="card">
+        <div class="card-top">
+          <div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4M3 11V8a2 2 0 0 1 2-2h16M7 22l-4-4 4-4M21 13v3a2 2 0 0 1-2 2H3"/></svg></div>
+          <span class="index" aria-hidden="true">02</span>
+        </div>
         <h3>Spots repeated messages</h3>
-        <p>By default it flags someone who sends the same message in five different
-        channels within 60 seconds.</p>
-      </div>
-      <div class="card">
-        <div class="glow">🛡️</div>
+        <p>By default, it flags someone who sends the same message in five different
+          channels within 60 seconds.</p>
+      </article>
+      <article class="card">
+        <div class="card-top">
+          <div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></div>
+          <span class="index" aria-hidden="true">03</span>
+        </div>
         <h3>Keeps your team in control</h3>
         <p>Review the evidence and confirm or dismiss each flag. Optional message
-        deletion works per protection.</p>
-      </div>
+          deletion works per protection.</p>
+      </article>
     </div>
-    <div class="calm">
-      <div class="glow">✅</div>
+    <aside class="calm" aria-label="Moderation behavior">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg>
       <p><strong>Your team decides member actions.</strong> BotProtect never automatically
-      bans, kicks, or times out members. Confirming a flag records your decision;
-      any action against a member is taken in Discord. Message deletion runs
-      automatically only when you enable it for a detector.</p>
-    </div>
+        bans, kicks, or times out members. Confirming a flag records your decision;
+        any action against a member is taken in Discord. Message deletion runs
+        automatically only when you enable it for a detector.</p>
+    </aside>
   </section>
 
-  <section id="deploy">
-    <h2>How to deploy</h2>
-    <p class="section-sub">
-      Pick the hosting path that fits you. Each installation belongs to one Discord
-      server and needs its own dedicated bot application.
-    </p>
+  <section class="wrap content-section deploy-section" id="deploy" aria-labelledby="deploy-title">
+    <header class="section-heading">
+      <div><p class="eyebrow">Your server. Your setup.</p><h2 id="deploy-title">How to deploy.</h2></div>
+      <p>Pick the hosting path that fits you. Each installation belongs to one Discord
+        server and needs its own dedicated bot application.</p>
+    </header>
     <div class="deploys">
-
-      <div class="deploy-card">
-        <span class="tag">Cloudflare · Recommended</span>
-        <h3>Deploy to Cloudflare Workers</h3>
+      <article class="deploy-card recommended">
+        <div class="deploy-card-top">
+          <span class="provider"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 18a4 4 0 0 1-.5-8A7 7 0 0 1 18 8a5 5 0 0 1 1 10Z"/></svg>Cloudflare</span>
+          <span class="tag">Recommended</span>
+        </div>
+        <h3>Let Cloudflare host it.</h3>
         <p>Setup happens in your browser and your computer doesn't need to stay on.
-        You need a Cloudflare account, a GitHub account, and permission to manage
-        your Discord server. The ongoing Discord connection uses compute even
-        when the server is quiet; read the <a href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md#cloudflare-hosting-and-operation">hosting notes</a>
-        before choosing a plan.</p>
+          You need a Cloudflare account, a GitHub account, and permission to manage
+          your Discord server. The ongoing Discord connection uses compute even
+          when the server is quiet; read the <a href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md#cloudflare-hosting-and-operation">hosting notes</a>
+          before choosing a plan.</p>
         <ol class="steps">
           <li>Create a Discord application in the <a href="https://discord.com/developers/applications">Developer Portal</a> and enable <strong>Message Content Intent</strong>. Keep the bot token, Application ID, client secret, and your server ID handy.</li>
           <li>Click <strong>Deploy to Cloudflare</strong> and follow the prompts, entering those four values when asked.</li>
@@ -278,49 +407,54 @@
           <li>Invite the bot to your server from its <strong>Installation</strong> page with the <a href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md#invite-the-bot">required permissions</a>.</li>
           <li>Sign in, choose your channels and trusted roles in <strong>Protection settings</strong>, save, then select <strong>Start protection</strong>.</li>
         </ol>
-        <div>
-          <a class="btn primary" href="https://deploy.workers.cloudflare.com/?url=https://github.com/rogersau/botprotect-haf">Deploy to Cloudflare</a>
-          <a class="btn ghost" href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md#cloudflare-setup">Detailed setup</a>
+        <div class="deploy-actions">
+          <a class="btn primary" href="https://deploy.workers.cloudflare.com/?url=https://github.com/rogersau/botprotect-haf">Deploy to Cloudflare <span aria-hidden="true">↗</span></a>
+          <a class="btn" href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md#cloudflare-setup">Detailed setup</a>
         </div>
-      </div>
+      </article>
 
-      <div class="deploy-card">
-        <span class="tag">Self-hosted · Docker</span>
-        <h3>Run it on your own server</h3>
+      <article class="deploy-card">
+        <div class="deploy-card-top">
+          <span class="provider"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg>Docker</span>
+          <span class="tag">Self-hosted</span>
+        </div>
+        <h3>Run it on your own server.</h3>
         <p>Already have an always-on computer, NAS, or VPS? BotProtect runs as a
-        Docker Compose stack with a persistent SQLite volume. No Cloudflare account
-        required. Needs some technical setup.</p>
-        <pre><code><span class="cmt"># one container protects one Discord server</span>
+          Docker Compose stack with a persistent SQLite volume. No Cloudflare account
+          required. Needs some technical setup.</p>
+        <pre tabindex="0" aria-label="Clone the repository and create your environment file"><code><span class="cmt"># one container protects one Discord server</span>
 git clone https://github.com/rogersau/botprotect-haf.git
 cd botprotect-haf
 cp .env.example .env</code></pre>
-        <p>Fill in <code>.env</code> with your Discord credentials, register
-        <code>${PUBLIC_URL}/auth/callback</code> as the application's OAuth2
-        redirect URL, and invite the bot to your server. Then start the container:</p>
-        <pre><code>docker compose up -d --build --wait</code></pre>
+        <p>Fill in <code>.env</code> with your Discord credentials. Register your
+          <code>PUBLIC_URL</code> followed by <code>/auth/callback</code> as the application's
+          OAuth2 redirect URL, and invite the bot to your server. Then start the container:</p>
+        <pre tabindex="0" aria-label="Start the Docker container"><code>docker compose up -d --build --wait</code></pre>
         <p>Open <a href="http://localhost:3000">http://localhost:3000</a> on the Docker
-        host, sign in, save your protection settings, and select <strong>Start protection</strong>.</p>
-        <div>
-          <a class="btn primary" href="https://github.com/rogersau/botprotect-haf/blob/main/docs/docker.md">Docker guide</a>
-          <a class="btn ghost" href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md">Technical guide</a>
+          host, sign in, save your protection settings, and select <strong>Start protection</strong>.</p>
+        <div class="deploy-actions">
+          <a class="btn primary" href="https://github.com/rogersau/botprotect-haf/blob/main/docs/docker.md">Docker guide <span aria-hidden="true">↗</span></a>
+          <a class="btn" href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md">Technical guide</a>
         </div>
-      </div>
-
+      </article>
     </div>
   </section>
-
 </main>
 
-<footer>
+<footer class="site-footer">
   <div class="wrap foot">
-    <span>BotProtect by <a href="https://hafbot.xyz"><strong>HAFBOT</strong></a> · adapted from <a href="https://github.com/rogersau/botprotect-haf/blob/main/THIRD_PARTY_NOTICES.md">HAFBot's Bot Defense</a> · <a href="https://github.com/rogersau/botprotect-haf/blob/main/LICENSE">MIT license</a></span>
-    <span class="links">
-      <a href="https://hafbot.xyz">hafbot.xyz ↗</a>
+    <a class="footer-brand" href="https://hafbot.xyz">
+      <img src="hafbot-logo.png" alt="" width="32" height="32">
+      <span>BotProtect<small>Brought to you by HAFBOT</small></span>
+    </a>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="https://hafbot.xyz">HAFBOT <span aria-hidden="true">↗</span></a>
       <a href="https://github.com/rogersau/botprotect-haf">GitHub</a>
       <a href="https://github.com/rogersau/botprotect-haf/blob/main/docs/technical.md">Docs</a>
-    </span>
+      <a href="https://github.com/rogersau/botprotect-haf/blob/main/LICENSE">MIT license</a>
+    </nav>
   </div>
+  <div class="wrap credits"><p>Adapted from HAFBot's Bot Defense. <a href="https://github.com/rogersau/botprotect-haf/blob/main/THIRD_PARTY_NOTICES.md">View project credits.</a> Free and open source. Hosting usage limits and charges may apply.</p></div>
 </footer>
-
 </body>
 </html>
